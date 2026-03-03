@@ -17,7 +17,7 @@ def model_factory(config):
     if config['Net_Type'][0] == 'T':
         model = Transformer(config, num_classes=config['num_labels'])
     elif config['Net_Type'][0] == 'CC-T':
-        model = CasualConvTran(config, num_classes=config['num_labels'])
+        model = CausalConvTran(config, num_classes=config['num_labels'])
     else:
         model = ConvTran(config, num_classes=config['num_labels'])
     return model
@@ -150,7 +150,7 @@ class ConvTran(nn.Module):
         return out
 
 
-class CasualConvTran(nn.Module):
+class CausalConvTran(nn.Module):
     def __init__(self, config, num_classes):
         super().__init__()
         # Parameters Initialization -----------------------------------------------
@@ -200,8 +200,8 @@ class CasualConvTran(nn.Module):
 
     def forward(self, x):
         x = x.unsqueeze(1)
-        x_src = self.embed_layer(x)
-        x_src = self.embed_layer2(x_src).squeeze(2)
+        x_src = self.causal_Conv1(x)
+        x_src = self.causal_Conv3(x_src).squeeze(2)
         x_src = x_src.permute(0, 2, 1)
         if self.Fix_pos_encode != 'None':
             x_src_pos = self.Fix_Position(x_src)
