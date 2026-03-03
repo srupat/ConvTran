@@ -201,6 +201,7 @@ class CausalConvTran(nn.Module):
     def forward(self, x):
         x = x.unsqueeze(1)
         x_src = self.causal_Conv1(x)
+        x_src = self.causal_Conv2(x_src)
         x_src = self.causal_Conv3(x_src).squeeze(2)
         x_src = x_src.permute(0, 2, 1)
         if self.Fix_pos_encode != 'None':
