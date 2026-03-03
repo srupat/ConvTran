@@ -170,6 +170,15 @@ class CausalConvTran(nn.Module):
         self.causal_Conv3 = nn.Sequential(CausalConv1d(emb_size, emb_size, kernel_size=3, stride=2, dilation=2),
                                           nn.BatchNorm1d(emb_size), nn.GELU())
 
+        # Compute post-conv sequence length for positional encodings and attention
+        def _causal_out_len(length, kernel_size, stride, dilation):
+            pad = (kernel_size - 1) * dilation
+            return (length + pad - dilation * (kernel_size - 1) - 1) // stride + 1
+
+        seq_len = _causal_out_len(seq_len, kernel_size=8, stride=2, dilation=1)
+        seq_len = _causal_out_len(seq_len, kernel_size=5, stride=2, dilation=2)
+        seq_len = _causal_out_len(seq_len, kernel_size=3, stride=2, dilation=2)
+
         if self.Fix_pos_encode == 'tAPE':
             self.Fix_Position = tAPE(emb_size, dropout=config['dropout'], max_len=seq_len)
         elif self.Fix_pos_encode == 'Sin':
@@ -199,9 +208,9 @@ class CausalConvTran(nn.Module):
         self.out = nn.Linear(emb_size, num_classes)
 
     def forward(self, x):
-        x = x.unsqueeze(1)
         x_src = self.causal_Conv1(x)
-        x_src = self.causal_Conv3(x_src).squeeze(2)
+        x_src = self.causal_Conv2(x_src)
+        x_src = self.causal_Conv3(x_src)
         x_src = x_src.permute(0, 2, 1)
         if self.Fix_pos_encode != 'None':
             x_src_pos = self.Fix_Position(x_src)
