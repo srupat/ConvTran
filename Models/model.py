@@ -172,8 +172,7 @@ class CausalConvTran(nn.Module):
 
         # Compute post-conv sequence length for positional encodings and attention
         def _causal_out_len(length, kernel_size, stride, dilation):
-            pad = (kernel_size - 1) * dilation
-            return (length + pad - dilation * (kernel_size - 1) - 1) // stride + 1
+            return (length - 1) // stride + 1
 
         seq_len = _causal_out_len(seq_len, kernel_size=8, stride=2, dilation=1)
         seq_len = _causal_out_len(seq_len, kernel_size=5, stride=2, dilation=2)
